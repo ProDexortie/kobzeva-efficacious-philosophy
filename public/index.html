@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Интерактивная Схема Зала Ресторана</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Интерактивная Схема Зала Ресторана</h1>
+    </header>
+    
+    <div class="main-container">
+        <div class="sidebar">
+            <div class="search-section">
+                <h3>Поиск стола</h3>
+                <div class="search-inputs">
+                    <input type="number" id="table-search" placeholder="Номер стола" min="1">
+                    <button id="find-table-btn">Найти</button>
+                </div>
+                <div id="search-error" class="error-message"></div>
+            </div>
+            
+            <div class="legend">
+                <h3>Легенда</h3>
+                <div class="legend-item">
+                    <div class="legend-color free-color"></div>
+                    <span>Свободен</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color occupied-color"></div>
+                    <span>Занят</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color reserved-color"></div>
+                    <span>Забронирован</span>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button id="reset-view-btn">Сбросить масштаб</button>
+                <button id="admin-mode-btn">Режим администратора</button>
+                
+                <!-- Кнопки, видимые только в режиме администратора -->
+                <div id="admin-controls" style="display: none;">
+                    <button id="add-table-btn">Добавить стол</button>
+                    <button id="change-table-number-btn">Изменить номер стола</button>
+                    <button id="rotate-table-btn">Повернуть стол</button>
+                    <button id="remove-table-btn">Удалить выбранный стол</button>
+                    <button id="save-layout-btn">Сохранить схему</button>
+                </div>
+            </div>
+            
+            <!-- Контейнер для статуса синхронизации будет добавлен здесь через JavaScript -->
+        </div>
+        
+        <div class="content">
+            <div id="hall-container">
+                <svg id="hall-layout" width="800" height="600"></svg>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно информации о столе -->
+    <div id="table-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Информация о столе <span id="modal-table-number"></span></h2>
+            
+            <div class="table-info">
+                <div class="info-row">
+                    <label>Статус:</label>
+                    <select id="table-status">
+                        <option value="free">Свободен</option>
+                        <option value="occupied">Занят</option>
+                        <option value="reserved">Забронирован</option>
+                    </select>
+                </div>
+                <div class="info-row">
+                    <label>Количество мест:</label>
+                    <span id="table-seats"></span>
+                </div>
+            </div>
+            
+            <div id="booking-section" class="section">
+                <h3>Информация о бронировании</h3>
+                <div class="form-group">
+                    <label for="client-name">Имя клиента:</label>
+                    <input type="text" id="client-name">
+                </div>
+                <div class="form-group">
+                    <label for="booking-time">Время бронирования:</label>
+                    <input type="datetime-local" id="booking-time">
+                </div>
+                <div class="form-group">
+                    <label for="people-count">Количество человек:</label>
+                    <input type="number" id="people-count" min="1">
+                </div>
+                <button id="save-booking-btn">Сохранить бронь</button>
+            </div>
+            
+            <div id="order-section" class="section">
+                <h3>Информация о заказе</h3>
+                <div id="order-status-section">
+                    <label>Статус заказа:</label>
+                    <select id="order-status">
+                        <option value="in-progress">В обработке</option>
+                        <option value="ready">Готов</option>
+                        <option value="paid">Оплачен</option>
+                    </select>
+                </div>
+                
+                <div class="order-items">
+                    <h4>Список блюд/напитков</h4>
+                    <ul id="order-items-list"></ul>
+                    
+                    <div class="add-item-form">
+                        <div class="form-group">
+                            <label for="item-name">Название:</label>
+                            <input type="text" id="item-name">
+                        </div>
+                        <div class="form-group">
+                            <label for="item-price">Цена (₽):</label>
+                            <input type="number" id="item-price" min="0">
+                        </div>
+                        <button id="add-item-btn">Добавить</button>
+                    </div>
+                    
+                    <div class="order-total">
+                        <strong>Итого: </strong>
+                        <span id="order-total-amount">0</span> ₽
+                    </div>
+                </div>
+                
+                <button id="save-order-btn">Сохранить заказ</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно администратора -->
+    <div id="admin-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Добавление стола</h2>
+            
+            <div class="admin-controls">
+                <div class="form-group">
+                    <label for="new-table-shape">Форма стола:</label>
+                    <select id="new-table-shape">
+                        <option value="rect">Прямоугольный</option>
+                        <option value="circle">Круглый</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="new-table-seats">Количество мест:</label>
+                    <input type="number" id="new-table-seats" min="1" value="4">
+                </div>
+                <button id="add-table-confirm-btn">Добавить стол</button>
+            </div>
+            
+            <div class="admin-help">
+                <p>Инструкция:</p>
+                <ul>
+                    <li>Выберите форму и количество мест для нового стола</li>
+                    <li>Нажмите "Добавить стол" для создания стола</li>
+                    <li>Для перемещения стола просто перетащите его</li>
+                    <li>Для удаления стола выберите его и нажмите кнопку "Удалить выбранный стол"</li>
+                    <li>После внесения изменений не забудьте нажать "Сохранить схему"</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для изменения номера стола -->
+    <div id="change-number-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Изменение номера стола</h2>
+            
+            <div class="form-group">
+                <label for="new-table-number">Новый номер стола:</label>
+                <input type="number" id="new-table-number" min="1" value="1">
+            </div>
+            
+            <button id="confirm-change-number-btn">Сохранить</button>
+        </div>
+    </div>
+
+    <!-- Основной скрипт приложения -->
+    <script src="script.js"></script>
+</body>
+</html>
